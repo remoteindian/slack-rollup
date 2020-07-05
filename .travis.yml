@@ -1,0 +1,16 @@
+language: node_js
+install:
+    - npm install
+script:
+    - npm run build
+deploy:
+  provider: pages
+  local-dir: ./public
+  target-branch: gh-pages
+  email: deploy@travis-ci.org
+  name: Deployment Bot
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  keep-history: true
+  on:
+    branch: master
