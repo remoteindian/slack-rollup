@@ -127,6 +127,14 @@
     </div>
     <div class="row center">
       <div class="column">
+        <label for="slackDumpUpload">
+          Upload Slack export ZIP archive. 
+          <a
+            target="__blank"
+            href="https://slack.com/intl/en-gb/help/articles/201658943-Export-your-workspace-data">
+            How do I do that?
+          </a>
+        </label>
         <input
           id="slackDumpUpload"
           type="file"
