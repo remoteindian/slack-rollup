@@ -157,7 +157,9 @@
       </div>
       <div class="right">
         {#if removable}
-          <span class="close" on:click={removeMessage}><b>x</b></span>
+          <span class="close" on:click={removeMessage}>
+            <b>x</b>
+          </span>
         {/if}
       </div>
     </div>
