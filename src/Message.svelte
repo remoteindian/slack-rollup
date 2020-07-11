@@ -1,12 +1,20 @@
 <script>
   import { emojis } from "./static";
   import Toggle from "@beyonk/svelte-toggle";
+  import { createEventDispatcher } from "svelte";
+  const dispatch = createEventDispatcher();
 
   let showHTML = false;
 
   export let message;
   export let users;
-  
+  export let draggable = false;
+  export let removable = false;
+
+  function removeMessage() {
+    dispatch("remove");
+  }
+
   function getDate(message) {
     return new Date(
       Number(message.timestamp.split(".")[0]) * 1000
@@ -77,6 +85,12 @@
         : ""
     }${getReactionsHTML(message)}</div></div>`;
   }
+
+  function handleDragStart(event) {
+    event.dataTransfer.effectAllowed = "copy";
+    event.dataTransfer.dropEffect = "copy";
+    event.dataTransfer.setData("text", JSON.stringify(message));
+  }
 </script>
 
 <style>
@@ -85,6 +99,11 @@
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   }
   .header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .header .left {
     display: flex;
     flex-direction: row;
   }
@@ -115,14 +134,6 @@
     font-size: 1.5rem;
     margin-right: 0.8em;
   }
-  pre {
-    overflow-x: auto;
-    white-space: pre-wrap;
-    white-space: -moz-pre-wrap;
-    white-space: -pre-wrap;
-    white-space: -o-pre-wrap;
-    word-wrap: break-word;
-  }
   code {
     display: block;
     padding: 1rem;
@@ -131,16 +142,23 @@
   }
 </style>
 
-<div class="card">
-  <Toggle bind:checked={showHTML} onLabel="Hide HTML" offLabel="Show HTML" />
+<div class="card" {draggable} on:dragstart={handleDragStart}>
+  <!-- <Toggle bind:checked={showHTML} onLabel="Hide HTML" offLabel="Show HTML" /> -->
   {#if showHTML}
     <code>{getCode(message)}</code>
   {:else}
     <div class="header">
-      <img class="profile-image" src={message.user.image_72} />
-      <div class="header-details">
-        <b>{message.user.real_name}</b>
-        <p>{getDate(message)} in #{message.channel}</p>
+      <div class="left">
+        <img class="profile-image" src={message.user.image_72} />
+        <div class="header-details">
+          <b>{message.user.real_name}</b>
+          <p>{getDate(message)} in #{message.channel}</p>
+        </div>
+      </div>
+      <div class="right">
+        {#if removable}
+          <span class="close" on:click={removeMessage}><b>x</b></span>
+        {/if}
       </div>
     </div>
     <div class="message">

@@ -1,5 +1,7 @@
 <script>
   import Message from "./Message.svelte";
+  import Builder from "./Builder.svelte";
+  import { usersStore } from "./store";
 
   let resultPromise;
   var jszip = new JSZip();
@@ -67,6 +69,7 @@
 
     const messages = analyzeMessages(processedFiles);
     const channels = [...new Set(messages.map(elem => elem.channel))];
+    usersStore.set(users);
     return { users, channels, messages };
   }
 
@@ -110,67 +113,83 @@
 </script>
 
 <style>
-  main {
-    padding-top: 3em;
-  }
   .center {
     text-align: center;
+  }
+  .panel {
+    overflow-y: scroll;
+    height: 70vh;
+  }
+  .header {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    height: 20vh;
   }
 </style>
 
 <main>
   <div class="container">
-    <div class="row center">
-      <div class="column">
-        <h1>Slack Rollup</h1>
+    <div class="header">
+      <div class="row center">
+        <div class="column">
+          <h1>Slack Rollup</h1>
+        </div>
+      </div>
+      <div class="row center">
+        <div class="column">
+          <label for="slackDumpUpload">
+            Upload Slack export ZIP archive.
+            <a
+              target="__blank"
+              href="https://slack.com/intl/en-gb/help/articles/201658943-Export-your-workspace-data">
+              How do I do that?
+            </a>
+          </label>
+          <input
+            id="slackDumpUpload"
+            type="file"
+            accept=".zip"
+            on:input={onUpload} />
+        </div>
       </div>
     </div>
-    <div class="row center">
-      <div class="column">
-        <label for="slackDumpUpload">
-          Upload Slack export ZIP archive. 
-          <a
-            target="__blank"
-            href="https://slack.com/intl/en-gb/help/articles/201658943-Export-your-workspace-data">
-            How do I do that?
-          </a>
-        </label>
-        <input
-          id="slackDumpUpload"
-          type="file"
-          accept=".zip"
-          on:input={onUpload} />
-      </div>
-    </div>
-
     {#if resultPromise}
       {#await resultPromise}
         <p class="center">Loading...</p>
       {:then result}
         <div class="row">
-          <div class="column">
-            <label for="channel">Select Channel</label>
-            <select on:input={onChannelSelect} id="channel">
-              <option value="all" selected>All</option>
-              {#each result.channels as channel}
-                <option value={channel}>{channel}</option>
-              {/each}
-            </select>
-          </div>
-          <div class="column">
-            <label for="sort">Sort By</label>
-            <select on:input={onSort} id="sort">
-              <option value="replies" selected>Replies</option>
-              <option value="reactions">Reactions</option>
+          <div class="column column-50">
+            <div class="row">
+              <div class="column">
+                <label for="channel">Select Channel</label>
+                <select on:input={onChannelSelect} id="channel">
+                  <option value="all" selected>All</option>
+                  {#each result.channels as channel}
+                    <option value={channel}>{channel}</option>
+                  {/each}
+                </select>
+              </div>
+              <div class="column">
+                <label for="sort">Sort By</label>
+                <select on:input={onSort} id="sort">
+                  <option value="replies" selected>Replies</option>
+                  <option value="reactions">Reactions</option>
 
-            </select>
+                </select>
+              </div>
+            </div>
+            <div class="row panel">
+              <div class="column">
+                {#each messages as message}
+                  <Message draggable="true" {message} users={$usersStore} />
+                {/each}
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="column">
-            {#each messages as message}
-              <Message {message} users={result.users} />
-            {/each}
+          <div class="column column-50">
+            <Builder />
           </div>
         </div>
       {/await}
