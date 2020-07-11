@@ -1,8 +1,10 @@
 <script>
   import { usersStore } from "./store";
+  import { getMessageHTML } from "./slack";
   import Message from "./Message.svelte";
   import Toggle from "@beyonk/svelte-toggle";
   var title = "Awesome slack newsletter";
+  let showHTML = false;
   var sections = [
     {
       title: "New Section",
@@ -33,6 +35,27 @@
   function removeSection(sectionIndex) {
     sections = sections.filter((sections, i) => i !== sectionIndex);
   }
+
+  function getSectionsHtml() {
+    if (sections) {
+      return sections.reduce((html, section) => {
+        return (
+          html +
+          `<div style="padding:0.5em 0;">
+          <h3>${section.title}</h3>
+          ${section.messages.map(message => getMessageHTML(message)).join("")}
+        </div>`
+        );
+      }, "");
+    }
+    return "";
+  }
+  function getCode() {
+    return `<div>
+    <div style="display:flex;flex-direction:row;"><h2>${title}</h2></div>
+    <div>${getSectionsHtml()}</div>
+    </div>`;
+  }
 </script>
 
 <style>
@@ -54,12 +77,6 @@
   .header {
     display: flex;
     flex-direction: row;
-    align-items: stretch;
-  }
-  .logo {
-    height: 48px;
-    width: 48px;
-    margin-right: 0.5em;
   }
   .button {
     margin-top: 1em;
@@ -92,57 +109,68 @@
   .section-header h3 {
     width: 100%;
   }
+  code {
+    display: block;
+    padding: 1rem;
+    word-wrap: break-word;
+    white-space: normal;
+    overflow-x: auto;
+  }
 </style>
 
 <div class="row">
   <div class="column">
-    <Toggle onLabel="Hide HTML" offLabel="Show HTML" />
+    <Toggle bind:checked={showHTML} onLabel="Hide HTML" offLabel="Show HTML" />
   </div>
 </div>
 <div class="builder panel">
-  <div class="header">
-    <h2
-      class="bold dashed-border-hover"
-      bind:textContent={title}
-      contenteditable="true">
-      {title}
-    </h2>
-  </div>
-  <div class="sections">
-    {#each sections as section, i}
-      <div
-        class="section dashed-border"
-        ondragover="return false"
-        on:drop|preventDefault={event => drop(event, i)}>
-        <div class="section-header">
-          <h3
-            class="bold dashed-border-hover"
-            contenteditable="true"
-            bind:textContent={section.title}>
-            {section.title}
-          </h3>
-          <span class="close" on:click={() => removeSection(i)}>
-            <b>x</b>
-          </span>
+  {#if showHTML}
+    <code>{getCode()}</code>
+  {:else}
+    <div class="header">
+      <h2
+        class="bold dashed-border-hover"
+        bind:textContent={title}
+        contenteditable="true">
+        {title}
+      </h2>
+    </div>
+    <div class="sections">
+      {#each sections as section, i}
+        <div
+          class="section dashed-border"
+          ondragover="return false"
+          on:drop|preventDefault={event => drop(event, i)}>
+          <div class="section-header">
+            <h3
+              class="bold dashed-border-hover"
+              contenteditable="true"
+              bind:textContent={section.title}>
+              {section.title}
+            </h3>
+            <span class="close" on:click={() => removeSection(i)}>
+              <b>x</b>
+            </span>
 
+          </div>
+          {#if section.messages.length == 0}
+            <p class="hint">
+              Drag messages from the left to add it under a section
+            </p>
+          {:else}
+            {#each section.messages as message, messageIndex}
+              <Message
+                {message}
+                users={$usersStore}
+                removable={true}
+                on:remove={() => onMessageRemove(i, messageIndex)} />
+            {/each}
+          {/if}
         </div>
-        {#if section.messages.length == 0}
-          <p class="hint">
-            Drag messages from the left to add it under a section
-          </p>
-        {:else}
-          {#each section.messages as message, messageIndex}
-            <Message
-              {message}
-              users={$usersStore}
-              removable={true}
-              on:remove={() => onMessageRemove(i, messageIndex)} />
-          {/each}
-        {/if}
-      </div>
-    {/each}
-  </div>
-  <button on:click={addSection} class="button button-outline">
-    Add section
-  </button>
+      {/each}
+    </div>
+    <button on:click={addSection} class="button button-outline">
+      Add section
+    </button>
+  {/if}
 </div>
