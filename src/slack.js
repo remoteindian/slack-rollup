@@ -2,6 +2,8 @@ import { usersStore } from "./store";
 import { emojis } from "./static";
 import { get } from "svelte/store";
 
+const acceptedImageTypes = ["gif", "png", "jpg"];
+
 export function getDate(message) {
   return new Date(
     Number(message.timestamp.split(".")[0]) * 1000
@@ -25,7 +27,7 @@ export function getFormattedText(message) {
       const regex = new RegExp(`<@${element.user_id}>`);
       text = text.replace(
         regex,
-        `<b>@${get(usersStore)[element.user_id] || "notfound"}</b>`
+        `<b>@${get(usersStore)[element.user_id].display_name || "notfound"}</b>`
       );
     } else if (element.type === "emoji") {
       text = text.replace(
@@ -40,7 +42,15 @@ export function getFormattedText(message) {
       text = text.replace(`*${element.text}*`, `<b>${element.text}</b`);
     }
   });
-  return text;
+  var imagesHTML = "";
+  if (message.files && message.files.length > 0) {
+    message.files
+      .filter((file) => acceptedImageTypes.indexOf(file.filetype) != -1)
+      .forEach((file) => {
+        imagesHTML += `<img style="margin-top:0.3em;width:100%;height:auto;" alt=${file.title} src="${file.url_private}"/>`;
+      });
+  }
+  return text + imagesHTML;
 }
 
 export function getReactionsHTML(message) {
@@ -58,10 +68,11 @@ export function getReactionsHTML(message) {
 }
 
 export function getMessageHTML(message) {
+  const user = get(usersStore)[message.user];
   return `<div style="padding:1em;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);"><div style="display:flex;flex-direction:row;"><img style="width:48px;height:48px;margin-right:1em;border-radius: 50%;" src="${
-    message.user.image_72
+    user.image_72
   }"/><div style="display:flex;flex-direction:column;align-items:flex-start;"><b>${
-    message.user.real_name
+    user.real_name
   }</b><span style="font-size:1rem;">${getDate(message)} in #${
     message.channel
   }</span></div></div><div style="overflow-wrap:break-word;margin-bottom:1em;">${getFormattedText(

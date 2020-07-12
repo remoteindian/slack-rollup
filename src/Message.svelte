@@ -1,7 +1,8 @@
 <script>
   import { emojis } from "./static";
   import Toggle from "@beyonk/svelte-toggle";
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
+  import { usersStore } from "./store";
   import { getMessageHTML, getDate, getFormattedText } from "./slack";
   const dispatch = createEventDispatcher();
 
@@ -66,9 +67,9 @@
 <div class="card" {draggable} on:dragstart={handleDragStart}>
   <div class="header">
     <div class="left">
-      <img class="profile-image" src={message.user.image_72} />
+      <img class="profile-image" src={$usersStore[message.user].image_72} />
       <div class="header-details">
-        <b>{message.user.real_name}</b>
+        <b>{$usersStore[message.user].real_name}</b>
         <p>{getDate(message)} in #{message.channel}</p>
       </div>
     </div>

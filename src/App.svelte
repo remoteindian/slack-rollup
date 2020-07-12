@@ -63,17 +63,17 @@
     const users = processedFiles
       .find(entry => entry.key === `${rootPath}/users.json`)
       .value.reduce(function(map, obj) {
-        map[obj.id] = obj.name;
+        map[obj.id] = obj.profile;
         return map;
       }, {});
 
-    const messages = analyzeMessages(processedFiles);
+    const messages = analyzeMessages(processedFiles, users);
     const channels = [...new Set(messages.map(elem => elem.channel))];
     usersStore.set(users);
     return { users, channels, messages };
   }
 
-  function analyzeMessages(processedFiles) {
+  function analyzeMessages(processedFiles, users) {
     var messages = [];
     processedFiles.forEach(element => {
       element.value.forEach(jsonElement => {
@@ -81,7 +81,7 @@
           jsonElement.type === "message" &&
           !jsonElement.parent_user_id && // Exclude thread messages
           jsonElement.user &&
-          jsonElement.user_profile // Exclude bot messages
+          users[jsonElement.user]
         ) {
           try {
             const reactionCount = (jsonElement.reactions || []).reduce(
@@ -98,9 +98,10 @@
               replyCount: replyCount,
               reactionCount: reactionCount,
               reactions: jsonElement.reactions,
-              user: jsonElement.user_profile,
+              user: jsonElement.user,
               timestamp: jsonElement.ts,
-              blocks: jsonElement.blocks
+              blocks: jsonElement.blocks,
+              files: jsonElement.files
             });
           } catch (err) {
             console.error(err.message);
@@ -183,7 +184,7 @@
             <div class="row panel">
               <div class="column">
                 {#each messages as message}
-                  <Message draggable="true" {message} users={$usersStore} />
+                  <Message draggable="true" {message} />
                 {/each}
               </div>
             </div>
