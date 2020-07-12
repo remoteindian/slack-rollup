@@ -3,11 +3,11 @@
   import { getMessageHTML } from "./slack";
   import Message from "./Message.svelte";
   import Toggle from "@beyonk/svelte-toggle";
-  var title = "Awesome slack newsletter";
+  var title = "📧 Awesome slack newsletter";
   let showHTML = false;
   var sections = [
     {
-      title: "New Section",
+      title: "⭐ Highlights ⭐",
       messages: []
     }
   ];
