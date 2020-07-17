@@ -1,6 +1,7 @@
 import { usersStore } from "./store";
 import { emojis } from "./static";
 import { get } from "svelte/store";
+import { element } from "svelte/internal";
 
 const acceptedImageTypes = ["gif", "png", "jpg"];
 
@@ -9,11 +10,22 @@ export function getDate(message) {
     Number(message.timestamp.split(".")[0]) * 1000
   ).toDateString();
 }
+
+function escapeControlCharacters(string) {
+  return string
+    .replace(/\&/g, "&amp;")
+    .replace(/\>/g, "&gt;")
+    .replace(/\</g, "&lt;");
+}
+
 export function getFormattedText(message) {
   if (!message.blocks || message.blocks.length === 0) {
     return message.text;
   }
-  const elements = message.blocks[0].elements[0].elements;
+  const elements = message.blocks.flatMap((block) =>
+    block.elements.flatMap((element) => element.elements)
+  );
+
   var text = message.text;
   elements.forEach((element) => {
     if (element.type === "link") {
@@ -34,14 +46,32 @@ export function getFormattedText(message) {
         `:${element.name}:`,
         emojis[element.name] || `:${element.name}:`
       );
-    } else if (
-      element.type === "text" &&
-      element.style &&
-      element.style.bold === true
-    ) {
-      text = text.replace(`*${element.text}*`, `<b>${element.text}</b`);
+    } else if (element.type === "text" && element.style) {
+      const elementText = escapeControlCharacters(element.text);
+      if (element.style.bold === true) {
+        text = text.replace(
+          new RegExp(`\\*${elementText}\\*`),
+          `<b>${element.text}</b>`
+        );
+      }
+      if (element.style.italic === true) {
+        text = text.replace(
+          new RegExp(`_${elementText}_`),
+          `<i>${element.text}</i>`
+        );
+      }
+
+      if (element.style.code === true) {
+        text = text.replace(
+          new RegExp("`" + elementText + "`"),
+          `<code>${element.text}</code>`
+        );
+      }
     }
   });
+
+  // Replace new lines with line breaks
+  text = text.replace(/\n/g, "<br />");
   var imagesHTML = "";
   if (message.files && message.files.length > 0) {
     message.files

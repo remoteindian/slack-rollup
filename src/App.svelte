@@ -41,6 +41,13 @@
       .sort((b, a) => {
         if (sortBy === "reactions") {
           return a.reactionCount - b.reactionCount;
+        } else if (sortBy === "replies_reactions") {
+          return (
+            a.replyCount * 3 +
+            a.reactionCount -
+            b.replyCount * 3 -
+            b.reactionCount
+          );
         }
         return a.replyCount - b.replyCount;
       });
@@ -177,7 +184,7 @@
                 <select on:input={onSort} id="sort">
                   <option value="replies" selected>Replies</option>
                   <option value="reactions">Reactions</option>
-
+                  <option value="replies_reactions">Replies + Reactions</option>
                 </select>
               </div>
             </div>
