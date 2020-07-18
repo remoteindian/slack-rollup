@@ -9,6 +9,8 @@
   let allMessages = [];
   let sortBy = "replies";
   let channel = "all";
+  let startDate;
+  let endDate;
   function onUpload(event) {
     let files = event.target.files;
     if (files && files[0] && files[0].type === "application/zip") {
@@ -74,6 +76,18 @@
         return map;
       }, {});
 
+    const dates = processedFiles
+      .map(file => {
+        var [fileName] = file.key.split("/").slice(-1);
+        return fileName.replace(".json", "");
+      })
+      .filter(fileName => !isNaN(Date.parse(fileName)))
+      .sort(function(a, b) {
+        return Date.parse(b) - Date.parse(a);
+      });
+
+    endDate = dates[0];
+    startDate = dates[dates.length - 1];
     const messages = analyzeMessages(processedFiles, users);
     const channels = [...new Set(messages.map(elem => elem.channel))];
     usersStore.set(users);
@@ -197,7 +211,7 @@
             </div>
           </div>
           <div class="column column-50">
-            <Builder />
+            <Builder {startDate} {endDate} />
           </div>
         </div>
       {/await}

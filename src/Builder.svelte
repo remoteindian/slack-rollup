@@ -3,6 +3,8 @@
   import { getMessageHTML } from "./slack";
   import Message from "./Message.svelte";
   import Toggle from "@beyonk/svelte-toggle";
+
+  export let startDate, endDate;
   var title = "📧 Awesome slack newsletter";
   let showHTML = false;
   var sections = [
@@ -52,7 +54,11 @@
   }
   function getCode() {
     return `<div>
-    <div style="display:flex;flex-direction:row;"><h2>${title}</h2></div>
+    <div style="display:flex;flex-direction:column;"><h2 style="margin-bottom:0">${title}</h2>
+    <b style="color:#999;margin-bottom:0.3em">${new Date(
+      startDate
+    ).toDateString()} - ${new Date(endDate).toDateString()}</b>
+    </div>
     <div>${getSectionsHtml()}</div>
     </div>`;
   }
@@ -76,7 +82,7 @@
   }
   .header {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
   }
   .button {
     margin-top: 1em;
@@ -98,6 +104,7 @@
   }
   .header h2 {
     width: 100%;
+    margin-bottom: 0 !important;
   }
 
   .section-header {
@@ -115,6 +122,10 @@
     word-wrap: break-word;
     white-space: normal;
     overflow-x: auto;
+  }
+  .date {
+    color: #999;
+    margin-bottom: 0.3em;
   }
 </style>
 
@@ -134,6 +145,9 @@
         contenteditable="true">
         {title}
       </h2>
+      <b class="date">
+        {new Date(startDate).toDateString()} - {new Date(endDate).toDateString()}
+      </b>
     </div>
     <div class="sections">
       {#each sections as section, i}
