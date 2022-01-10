@@ -12,11 +12,13 @@
   let startDate;
   let endDate;
   function onUpload(event) {
+    console.log("uploading")
     let files = event.target.files;
     if (files && files[0] && files[0].type === "application/zip") {
       resultPromise = analyzeSlackDump(files[0]).then(result => {
         allMessages = result.messages;
         filterAndSort();
+        console.log("result = ", result)
         return result;
       });
     }
@@ -68,9 +70,8 @@
         processedFiles.push({ key: key, value: jsonValue });
       }
     }
-    const rootPath = processedFiles[0].key.split("/")[0];
     const users = processedFiles
-      .find(entry => entry.key === `${rootPath}/users.json`)
+      .find(entry => entry.key === 'users.json')
       .value.reduce(function(map, obj) {
         map[obj.id] = obj.profile;
         return map;
@@ -113,7 +114,7 @@
             );
             const replyCount = (jsonElement.replies || []).length;
             messages.push({
-              channel: element.key.split("/")[1],
+              channel: element.key.split("/")[0],
               text: jsonElement.text,
               replies: jsonElement.replies,
               replyCount: replyCount,

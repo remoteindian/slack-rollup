@@ -19,12 +19,18 @@ function escapeControlCharacters(string) {
 }
 
 export function getFormattedText(message) {
-  if (!message.blocks || message.blocks.length === 0) {
+  const user = get(usersStore)[message.user];
+  if (!message.blocks || message.blocks.length === 0 || user.bot_id) {
     return message.text;
   }
-  const elements = message.blocks.flatMap((block) =>
-    block.elements.flatMap((element) => element.elements)
-  );
+  const elements = message.blocks.flatMap((block) => {
+    if(block.elements !== undefined){
+      return block.elements.flatMap((element) => element.elements)
+    }else
+    {
+      return []
+    }
+  });
 
   var text = message.text;
   elements.forEach((element) => {
