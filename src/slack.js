@@ -15,10 +15,12 @@ function escapeControlCharacters(string) {
   return string
     .replace(/\&/g, "&amp;")
     .replace(/\>/g, "&gt;")
-    .replace(/\</g, "&lt;");
+    .replace(/\</g, "&lt;")
+    .replace(/[*]/g,"");
 }
 
 export function getFormattedText(message) {
+  try {
   const user = get(usersStore)[message.user];
   if (!message.blocks || message.blocks.length === 0 || user.bot_id) {
     return message.text;
@@ -87,6 +89,11 @@ export function getFormattedText(message) {
       });
   }
   return text + imagesHTML;
+}
+   catch (error) {
+    console.log("There is an issue with this element and got skipped -", message);
+    console.error(error);
+  }
 }
 
 export function getReactionsHTML(message) {
